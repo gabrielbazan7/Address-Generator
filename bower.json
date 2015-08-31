@@ -1,0 +1,9 @@
+{
+  "name": "Address Generator",
+  "dependencies": {
+    "bitcore": "0.13.1",
+    "bootstrap": "3.3.5",
+    "jquery": "2.1.4",
+    "sjcl": "1.0.3"
+  }
+}
