@@ -1,12 +1,10 @@
 var app = angular.module("addressGeneratorApp.services",[]);
-app.service('generatorServices',[function(){
-	var validate = function(bck,pwd,num){
-	if (bck == "" || pwd == "" || num == "") {
+app.service('generatorServices',['$http',function($http){
+
+var validate = function(bck,pwd){
+	if (bck == "" || pwd == "") {
 		return "Please Enter values for all entry boxes.";
 	};
-	if (num < 0) {
-       return "Please Enter a positive integer value for the number of addresses.";
-          };
 	try {
 		jQuery.parseJSON( bck );
 	} catch(e) {
@@ -25,11 +23,13 @@ var getXPrivKey = function(pwd,bck){
 		return JSON.parse(sjcl.decrypt(pwd,bck).toString()).xPrivKey;
 	};
 
-var getAddress = function(xPrivKey, num){
+var getAddress = function(xPrivKey){
+	var count = 0;
+	var i = 0;
 	var bitcore = require('bitcore');
 	var addr = [];
 	var hdPrivateKey = bitcore.HDPrivateKey(xPrivKey);
-	for (var i = 0; i < num; i++) {
+	for (var count = 0 ; count < 5000; count++) {
 		// private key derivation
 		var derivedHdPrivateKey = hdPrivateKey.derive("m/45'/0/"+i);
 		var derivedPrivateKey = derivedHdPrivateKey.privateKey;
@@ -37,10 +37,22 @@ var getAddress = function(xPrivKey, num){
 		var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
 		var derivedPublicKey = derivedHdPublicKey.publicKey;
 		var address = derivedPublicKey.toAddress();
+		isAddr(address.toString()).then(function(response){
+		console.log('unconfirmedTxApperances: ' + response.data.unconfirmedTxApperances + ' -'+' txApperances: '+response.data.txApperances);
+		if(response.data.unconfirmedTxApperances+response.data.txApperances>0){
 		addr += address.toString()+'\n';
+		count == 0;	
+		}
+		});
+		i = i+1;
 	}
 	return addr;
 	};
+
+var isAddr = function (address){
+	return $http.get('https://test-insight.bitpay.com/api/addr/'+address+'?noTxList=1');
+    };
+
 return {
         getXPrivKey : getXPrivKey,
         getAddress: getAddress,
