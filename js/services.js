@@ -25,13 +25,14 @@ app.service('generatorServices',['$http',function($http){
 
 	var getAddress = function(xPrivKey){
 		var i = 0;
+		var y = 0;
 		var bitcore = require('bitcore');
 		var addr = [];
 		var hdPrivateKey = bitcore.HDPrivateKey(xPrivKey);
 
-		for (var count = 0 ; count < 5000; count++) {
+		for (var count = 0 ; count < 100; count++) {
 			// private key derivation
-			var derivedHdPrivateKey = hdPrivateKey.derive("m/45'/0/"+i);
+			var derivedHdPrivateKey = hdPrivateKey.derive("m/45'/2147483647/0/"+i);
 			var derivedPrivateKey = derivedHdPrivateKey.privateKey;
 		
 			// public key derivation
@@ -47,7 +48,28 @@ app.service('generatorServices',['$http',function($http){
 					count == 0;	
 				}
 			});
-			i = i + 1;
+			i++;
+		}
+
+		for (var count2 = 0 ; count2 < 100; count2++) {
+			// private key derivation
+			var derivedHdPrivateKey = hdPrivateKey.derive("m/45'/2147483647/1/"+y);
+			var derivedPrivateKey = derivedHdPrivateKey.privateKey;
+		
+			// public key derivation
+			var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
+			var derivedPublicKey = derivedHdPublicKey.publicKey;
+			var address = derivedPublicKey.toAddress();
+
+			isAddr(address.toString()).then(function(response){
+				console.log('unconfirmedTxApperances: ' + response.data.unconfirmedTxApperances + ' -'+' txApperances: '+response.data.txApperances);
+			
+				if(response.data.unconfirmedTxApperances + response.data.txApperances > 0){
+					addr += address.toString()+'\n';
+					count2 == 0;	
+				}
+			});
+			y++;
 		}
 
 		return addr;
