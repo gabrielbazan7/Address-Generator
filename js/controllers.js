@@ -12,7 +12,7 @@ app.controller("addressGeneratorController",function($scope,generatorServices){
 	else{
 		$scope.textbox= validation;
 	}
-};
+	};
 });
 
 
