@@ -27,7 +27,8 @@ var root={};
 	};
 
 	root.getAddress = function(xPrivKey,count,cb){
-
+		var i = 0;
+		var y = 0;
 		var bitcore = require('bitcore');
 		var hdPrivateKey = bitcore.HDPrivateKey(xPrivKey);
 		// private key derivation
@@ -62,6 +63,7 @@ var root={};
 		// 	return cb(addr);
 		// 	});
 	}
+	
 	root.isAddr = function (address){
 			return $http.get('https://test-insight.bitpay.com/api/addr/'+address+'?noTxList=1');
 	};
