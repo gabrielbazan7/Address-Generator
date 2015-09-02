@@ -1,7 +1,10 @@
 var app = angular.module("addressGeneratorApp.services",[]);
 app.service('generatorServices',['$http',function($http){
+var i = 0;
+var GAP=20;
+var root={};
 
-	var validate = function(bck,pwd){
+	root.validate = function(bck,pwd){
 		if (bck == "" || pwd == "") {
 			return "Please Enter values for all entry boxes.";
 		};
@@ -19,67 +22,74 @@ app.service('generatorServices',['$http',function($http){
 		return true;
 	};
 
-	var getXPrivKey = function(pwd,bck){
+	root.getXPrivKey = function(pwd,bck){
 		return JSON.parse(sjcl.decrypt(pwd,bck).toString()).xPrivKey;
 	};
 
-	var getAddress = function(xPrivKey){
-		var i = 0;
+	root.getAddress = function(xPrivKey,count,cb){
+
 		var bitcore = require('bitcore');
-		var addr = [];
 		var hdPrivateKey = bitcore.HDPrivateKey(xPrivKey);
-
-		for (var count = 0 ; count < 100; count++) {
-			// private key derivation
-			var derivedHdPrivateKey = hdPrivateKey.derive("m/45'/2147483647/0/"+i);
-			var derivedPrivateKey = derivedHdPrivateKey.privateKey;
-		
-			// public key derivation
-			var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
-			var derivedPublicKey = derivedHdPublicKey.publicKey;
-			var address = derivedPublicKey.toAddress();
-
-			isAddr(address.toString()).then(function(response){
-				console.log('unconfirmedTxApperances: ' + response.data.unconfirmedTxApperances + ' -'+' txApperances: '+response.data.txApperances);
-			
-				if(response.data.unconfirmedTxApperances + response.data.txApperances > 0){
-					addr += 'main: '+address.toString()+'\n';
-					count == 0;	
-				}
+		// private key derivation
+		var derivedHdPrivateKey = hdPrivateKey.derive("m/45'/2147483647/0/"+count);
+		var derivedPrivateKey = derivedHdPrivateKey.privateKey;
+		// public key derivation
+		var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
+		var derivedPublicKey = derivedHdPublicKey.publicKey;
+		var address = new bitcore.Address([derivedPublicKey],1);
+		//console.log(address.toString());
+		root.isAddr(address.toString()).then(function(response){
+			var ret;		
+			if(response.data.unconfirmedTxApperances + response.data.txApperances > 0){
+				ret=address.toString();
+			}
+			//console.log(response);
+			     return cb(ret);
 			});
-			i = i + 1;
-		}
-			i=0;
-			for (var count = 0 ; count < 100; count++) {
-			// private key derivation
-			var derivedHdPrivateKey = hdPrivateKey.derive("m/45'/2147483647/1/"+i);
-			var derivedPrivateKey = derivedHdPrivateKey.privateKey;
-		
-			// public key derivation
-			var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
-			var derivedPublicKey = derivedHdPublicKey.publicKey;
-			var address = derivedPublicKey.toAddress();
 
-			isAddr(address.toString()).then(function(response){
-				console.log('unconfirmedTxApperances: ' + response.data.unconfirmedTxApperances + ' -'+' txApperances: '+response.data.txApperances);
-			
-				if(response.data.unconfirmedTxApperances + response.data.txApperances > 0){
-					addr += 'change: 'address.toString()+'\n';
-					count == 0;	
-				}
-			})
-			i = i + 1;
-		}
-		return addr;
+		// var derivedHdPrivateKey = hdPrivateKey.derive("m/45'/2147483647/1/"+count);
+		// var derivedPrivateKey = derivedHdPrivateKey.privateKey;
+		// // public key derivation
+		// var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
+		// var derivedPublicKey = derivedHdPublicKey.publicKey;
+		// var address = new bitcore.Address([derivedPublicKey],1);
+		// //console.log(address.toString());
+		// isAddr(address.toString()).then(function(response){		
+		// 	if(response.data.unconfirmedTxApperances + response.data.txApperances > 0){
+		// 		addr.push(' '+address.toString());
+		// 	}
+		// 	//console.log(response);
+		// 	return cb(addr);
+		// 	});
+	}
+	root.isAddr = function (address){
+			return $http.get('https://test-insight.bitpay.com/api/addr/'+address+'?noTxList=1');
 	};
 
-	var isAddr = function (address){
-		return $http.get('https://test-insight.bitpay.com/api/addr/'+address+'?noTxList=1');
-	};
+	root.getActiveAddresses = function(pwd,bck,cb){
 
-	return {
-        getXPrivKey : getXPrivKey,
-        getAddress: getAddress,
-        validate : validate
-    }
+			var xPrivKey = root.getXPrivKey(pwd,bck);
+			var inactiveCount=0;
+			var count=0;
+			var ret=[];
+
+			function derive(index) {
+				root.getAddress(xPrivKey, index, function(addr) {		
+					if (addr) {
+						ret.push(addr);
+						inactiveCount=0;
+					}
+					else 
+						inactiveCount++;
+
+					if (inactiveCount > GAP ){
+						return cb(ret);}
+					else 
+						derive(index +1);
+				});
+		    };
+			derive(0);
+	}
+
+	return root;
 }]);
