@@ -54,7 +54,8 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 				var retObject = {};
 
 				if(responseAddress.data.unconfirmedTxApperances + responseAddress.data.txApperances > 0){
-					for(var i=0; i<responseUtxo.data.length ;i++)
+					// for(var i=0; i<responseUtxo.data.length ;i++)
+					lodash.each(responseUtxo.data)
 						privKeys.push(derivedPrivateKey);
 
 					retObject = {address: responseAddress.data.addrStr, 
