@@ -5,6 +5,7 @@
     "bootstrap": "3.3.5",
     "jquery": "2.1.4",
     "sjcl": "1.0.3",
-    "angular":"1.4.4"
+    "angular":"1.4.4",
+    "ng-lodash": "0.2.3"
   }
 }
