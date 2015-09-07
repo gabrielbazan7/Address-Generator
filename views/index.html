@@ -27,12 +27,16 @@
                     <label for="pwd">Password:</label>
                     <input type="password" class="form-control" ng-model="password">
                 </div>
-                <button class="btn btn-success" ng-click="generate()">Generate</button>
+                <button class="btn btn-success" ng-click="generate()">Generate</button><br><br>
+                <div id="button2" style="display: none;">
                 <div class="form-group">
                     <label for="addr">Insert destination address:</label>
                     <input type="text" class="form-control" ng-model="addr">
                 </div>
+                <div class="form-group">
                 <button class="btn btn-success" ng-click="send()">Retrieve</button>
+                </div>
+                </div>
                 <div class="form-group">
                     <h2>Address generated: </h2>
                     <textarea ng-model="textArea" rows="20" style="width: 100%"></textarea>

@@ -15,7 +15,6 @@ app.controller("addressGeneratorController",function($scope, generatorServices){
 		var validation = generatorServices.valGenerate(backUp, password);
 		var mainPath = "m/45'/2147483647/0/";
 		var changePath = "m/45'/2147483647/1/";
-		
 		$scope.textArea = 'Searching main addresses...\n\n';
 
 		if(validation == true){
@@ -69,6 +68,7 @@ app.controller("addressGeneratorController",function($scope, generatorServices){
 					}
 					else
 						$scope.textArea += 'No Change addresses available.\n\n';
+						$("#button2").show();
 				});
 			});
 		}
@@ -85,7 +85,9 @@ app.controller("addressGeneratorController",function($scope, generatorServices){
 			$scope.textArea += 'Creating transaction to retrieve total amount...\n\n';
 
 			var rawTx = generatorServices.createRawTx(addr, utxos, totalBalance, privateKeys);
-			generatorServices.txBroadcast(rawTx);
+			generatorServices.txBroadcast(rawTx, function(response){
+				console.log(response);
+			});
 		}else
 			$scope.textArea += validation + '\n\n';		
 	}
