@@ -1,12 +1,13 @@
-var app = angular.module("addressGeneratorApp.services",[]);
-app.service('generatorServices',['$http',function($http){
+var app = angular.module("addressGeneratorApp.services",['ngLodash']);
+app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	var bitcore = require('bitcore');
+	var Transaction = bitcore.Transaction;
 	var GAP = 20;
 	var root = {};
 
-	root.validate = function(backUp, password){
+	root.valGenerate = function(backUp, password){
 		if (backUp == "" || password == "")
-			return "Please Enter values for all entry boxes.";
+			return "Please enter values for all entry boxes.";
 
 		try {
 			jQuery.parseJSON(backUp);
@@ -49,39 +50,40 @@ app.service('generatorServices',['$http',function($http){
 			// call insight API for get utxo information
 			root.isUtxo(address.toString())
 			.then(function(responseUtxo){
-
+				var privKeys = [];
 				var retObject = {};
-				var totalAmount = 0;
 
-				for (var i=0; i<responseUtxo.data.length ; i++)
-                    totalAmount += responseUtxo.data[i].amount;
+				if(responseAddress.data.unconfirmedTxApperances + responseAddress.data.txApperances > 0){
+					for(var i=0; i<responseUtxo.data.length ;i++)
+						privKeys.push(derivedPrivateKey);
 
-				if(responseAddress.data.unconfirmedTxApperances + responseAddress.data.txApperances > 0)
 					retObject = {address: responseAddress.data.addrStr, 
 								balance: responseAddress.data.balance,
-								path: path,
-								utxo: totalAmount};
+								path: path + index,
+								utxo: responseUtxo.data,
+								privKey: privKeys};
+				}
 
 				return callback(retObject);
 			});
 		});
 	}
 	
-	root.isAddr = function (address){
+	root.isAddr = function(address){
 		return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '?noTxList=1');
 	}
 
-	root.isUtxo = function (address){
+	root.isUtxo = function(address){
 	    return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');
     }
 
-	root.getActiveAddresses = function (password, backUp, path, callback){
+	root.getActiveAddresses = function(password, backUp, path, callback){
 		var xPrivKey = root.getXPrivKey(password, backUp);
 		var inactiveCount = 0;
 		var count = 0;
 		var retObject_ = [];
 
-		function derive (index) {
+		function derive(index){
 			root.getAddress(xPrivKey, index, path, function(retObject) {		
 				if (!jQuery.isEmptyObject(retObject)) {
 					retObject_.push(retObject);
@@ -99,22 +101,39 @@ app.service('generatorServices',['$http',function($http){
 		derive(0);
 	}
 
-	root.createTx = function (txData){
-		var Transaction = bitcore.Transaction;
-
-	//  .from(utxos)          	Feed information about what unspent outputs one can use
-	// 	.to(address, amount) 	Add an output with the given amount of satoshis
-	// 	.change(address)      	Sets up a change address where the rest of the funds will go
-	// 	.sign(privkeySet)     	Signs all the inputs it can
-
+	root.createRawTx = function(address, utxos, totalBalance, privKeys){
 		var tx = new Transaction();
-		tx.from();
-		tx.to();
-		tx.change();
-		tx.sign();
+		var amount = parseInt((totalBalance * 100000000 - 10000).toFixed(0));
 
-		var serialized = tx.toObject();
+		for(var i=0; i<utxos.length ;i++){
+			var priv = new bitcore.PrivateKey(privKeys[i]);
+			tx.from(utxos[i], [priv.publicKey], 1);
+		}
+
+		tx.to(address, amount);
+		tx.sign(lodash.uniq(privKeys));
+
+		var rawTx = tx.serialize();
+		return rawTx;
+	}
+
+	root.valCreateRawTx = function(addr){
+		if(addr == '' || addr.length < 20)
+			return 'Please enter a valid address.';
+
+		return true;
+	}
+
+	root.txBroadcast = function(rawTx){
+		return $http.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: rawTx});
 	}
 
 	return root;
 }]);
+
+
+
+
+
+
+
