@@ -2,47 +2,53 @@ var app = angular.module("addressGeneratorApp.services",['ngLodash']);
 app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	var bitcore = require('bitcore');
 	var Transaction = bitcore.Transaction;
+	var Address = bitcore.Address;
 	var GAP = 20;
 	var root = {};
 
 	root.valGenerate = function(backUp, password){
-		if (backUp == "" || password == "")
+		for (var i = backUp.length - 1; i >= 0; i--) {
+			if (backUp[i] == "" || password[i] == "")
 			return "Please enter values for all entry boxes.";
 
 		try {
-			jQuery.parseJSON(backUp);
+			jQuery.parseJSON(JSON.parse(backUp[i]));
 		} catch(e) {
 			return "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
 		};
 
 		var plain;
 		try {
-			plain = sjcl.decrypt(password, backUp);
+			plain = sjcl.decrypt(password[i], JSON.parse(backUp[i]));
 		} catch(e) {
 			return "Seems like your password is incorrect. Try again.";
 		};
-
+		}
 		return true;
 	}
 
 	root.getXPrivKey = function(password, backUp){
-		return JSON.parse(sjcl.decrypt(password, backUp).toString()).xPrivKey;
+		console.log(JSON.parse(backUp));
+		console.log(password);
+		console.log(sjcl.decrypt(password, JSON.parse(backUp)));
+		console.log("hola2");
+		console.log(sjcl.decrypt(password, JSON.parse(backUp)));
+		return JSON.parse(sjcl.decrypt(password, JSON.parse(backUp)).toString()).xPrivKey;
 	}
 
-	root.getAddress = function(xPrivKey, index, path, callback){
-		var hdPrivateKey = bitcore.HDPrivateKey(xPrivKey);
+	root.getAddress = function(xPrivKeys, index, path, callback){
+		var derivedPublicKeys = [];
+		for (var i = xPrivKeys.length - 1; i >= 0; i--) {
+			var hdPrivateKey = bitcore.HDPrivateKey(xPrivKeys[i]);
+			// private key derivation
+			var derivedHdPrivateKey = hdPrivateKey.derive(path + index);
+			var derivedPrivateKey = derivedHdPrivateKey.privateKey;
 
-		// private key derivation
-		var derivedHdPrivateKey = hdPrivateKey.derive(path + index);
-		var derivedPrivateKey = derivedHdPrivateKey.privateKey;
-
-		// public key derivation
-		var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
-		var derivedPublicKey = derivedHdPublicKey.publicKey;
-
-		// p2sh 1-1
-		var address = new bitcore.Address([derivedPublicKey],1);
-
+			// public key derivation
+			var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
+			derivedPublicKeys.push(derivedHdPublicKey.publicKey);
+		}
+		var address = new bitcore.Address(derivedPublicKeys,xPrivKeys.length);
 		// call insight API for get address information
 		root.isAddr(address.toString())
 		.then(function(responseAddress){
@@ -78,14 +84,19 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	    return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');
     }
 
-	root.getActiveAddresses = function(password, backUp, path, callback){
-		var xPrivKey = root.getXPrivKey(password, backUp);
+	root.getActiveAddresses = function(passwords, backUps, path, callback){
+		var xPrivKeys = [];
+		for (var i = 0; i < backUps.length ; i++) {
+			console.log(JSON.parse(backUps[i]));
+			xPrivKeys.push(root.getXPrivKey(passwords[i], JSON.parse(backUps[i])));
+		}
+		console.log(xPrivKeys);
 		var inactiveCount = 0;
 		var count = 0;
 		var retObject_ = [];
 
 		function derive(index){
-			root.getAddress(xPrivKey, index, path, function(retObject) {		
+			root.getAddress(xPrivKeys, index, path, function(retObject) {		
 				if (!jQuery.isEmptyObject(retObject)) {
 					retObject_.push(retObject);
 					inactiveCount = 0;
@@ -118,10 +129,11 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		return rawTx;
 	}
 
-	root.valCreateRawTx = function(addr){
-		if(addr == '' || addr.length < 20)
+	root.valCreateRawTx = function(addr,totalBalance){
+		if(addr == '' || addr.length < 20 || !Address.isValid(addr))
 			return 'Please enter a valid address.';
-
+		if(totalBalance <=0)
+			return 'The total balance in your address is 0';
 		return true;
 	}
 
