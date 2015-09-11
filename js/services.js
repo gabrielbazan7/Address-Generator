@@ -1,103 +1,95 @@
 var app = angular.module("addressGeneratorApp.services",['ngLodash']);
 app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	var bitcore = require('bitcore');
-	var Transaction = bitcore.Transaction;
 	var Address = bitcore.Address;
-	var GAP = 20;
 	var root = {};
 
-	 root.valGenerate = function(backUps, passwords, m, n){
-        for (var i = backUps.length - 1; i >= 0; i--) {
-            if (backUps[i] == "" || passwords[i] == "")
-                return "Please enter values for all entry boxes.";
+	 root.validation = function(copayersData, m, n){
+	 	var validation = "";
 
+	 	lodash.each(copayersData, function(cop) {
+
+	 	 if (cop.backUp == "" || cop.password == ""){
+                validation = "Please enter values for all entry boxes.";
+                return validation;
+            }
             try {
-                jQuery.parseJSON(backUps[i]);
+                jQuery.parseJSON(cop.backUp);
             } catch(e) {
-                return "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
+                validation = "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
+                return validation;
+            };
+            try {
+                sjcl.decrypt(cop.password, cop.backUp);
+            } catch(e) {
+                validation = "Seems like your password is incorrect. Try again.";
+                return validation;
             };
 
-            try {
-                sjcl.decrypt(passwords[i], backUps[i]);
-            } catch(e) {
-                return "Seems like your password is incorrect. Try again.";
-            };
+            if ((JSON.parse(sjcl.decrypt(cop.password, cop.backUp)).m != m) 
+            	|| (JSON.parse(sjcl.decrypt(cop.password, cop.backUp)).n != n)){
+                validation= "The wallet type (m/n) is not matched with 'm' and 'n' values.";
+                return validation;
+            }
+            if(JSON.parse(sjcl.decrypt(cop.password, cop.backUp).toString()).xPrivKey = ""){
+            	validation= "You are using a backup that cant be use to sign";
+            	return validation;
+            }
 
-            if (JSON.parse(sjcl.decrypt(passwords[i], backUps[i])).m != m || JSON.parse(sjcl.decrypt(passwords[i], backUps[i])).n != n)
-                return "The wallet (" + i + ") type (m/n) is not matched with 'm' and 'n' values.";
-        }
+	 	});
+		if(validation==""){
+		if(typeof(copayersData)!="undefined"){
+		for (var i = copayersData.length - 1; i >= 0; i--) {
+	 		for (var j = copayersData.length - 1; j >= 0; j--) {
+	 			if(JSON.parse(sjcl.decrypt(copayersData[i].password, copayersData[i].backUp)).network 
+	 				!= JSON.parse(sjcl.decrypt(copayersData[j].password, copayersData[j].backUp)).network){
+	 				validation = "Please use only testnets backups or only livenets backups";
+	 				return validation;
+	 			}
+	 		}
+	 	}
+	 }
+	}
+	 	if(validation != ""){
+	 	return validation;
+	 	}
+	 	else{
         return true;
     }
-
-	root.getXPrivKey = function(password, backUp){
-		return JSON.parse(sjcl.decrypt(password, backUp).toString()).xPrivKey;
-	}
-
-	root.getAddress = function(xPrivKeys, index, path, n, callback){
-		var derivedPublicKeys = [];
-		var derivedPrivateKeys =[];
-
-		for (var i = xPrivKeys.length - 1; i >= 0; i--) {
-			var hdPrivateKey = bitcore.HDPrivateKey(xPrivKeys[i]);
-			// private key derivation
-			var derivedHdPrivateKey = hdPrivateKey.derive(path + index);
-			var derivedPrivateKey = derivedHdPrivateKey.privateKey;
-			derivedPrivateKeys.push(derivedPrivateKey);
-			// public key derivation
-			var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
-			derivedPublicKeys.push(derivedHdPublicKey.publicKey);
-		}
-		var address = new bitcore.Address(derivedPublicKeys,n);
-
-		// call insight API for get address information
-		root.isAddr(address.toString())
-		.then(function(responseAddress){
-
-			// call insight API for get utxo information
-			root.isUtxo(address.toString())
-			.then(function(responseUtxo){
-				var privKeys = [];
-				var retObject = {};
-				var utxos = {};
-				var privKeyArray = [];
-				if(responseAddress.data.unconfirmedTxApperances + responseAddress.data.txApperances > 0){
-						for (var j = 0; j<derivedPrivateKeys.length; j++) {
-						    privKeys.push(derivedPrivateKeys[j]);}
-							for(var i=0; i<responseUtxo.data.length ;i++) {
-						privKeyArray.push(privKeys);
-					}
-					 utxos = {utxo: responseUtxo.data,
-					 		 privKeys: privKeyArray};
-					retObject = {address: responseAddress.data.addrStr, 
-								balance: responseAddress.data.balance,
-								path: path + index,
-								utxoData: utxos};
-				}
-
-				return callback(retObject);
-			});
-		});
-	}
-	
-	root.isAddr = function(address){
-		return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '?noTxList=1');
-	}
-
-	root.isUtxo = function(address){
-	    return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');
     }
 
-	root.getActiveAddresses = function(passwords, backUps, path, n, callback){
-		var xPrivKeys = [];
-		for (var i = 0; i < backUps.length ; i++) {
-			xPrivKeys.push(root.getXPrivKey(passwords[i], backUps[i]));
+    root.getCopayersData = function (backUps,passwords){
+    	backUps = lodash.remove(backUps,function (n){
+			return !lodash.isUndefined(n);
+		});
+		passwords = lodash.remove(passwords,function (n){
+			return !lodash.isUndefined(n);
+		});
+		var copayersData = [];
+		for (var i = 0; i< backUps.length ;i++) {
+			copayersData.push({backUp : backUps[i], password: passwords[i]});
 		}
+		return copayersData;
+    }
+
+    root.getXPrivKeys = function(copayersData){
+		var xPrivKeys = lodash.map(copayersData, function(cop){
+			return JSON.parse(sjcl.decrypt(cop.password, cop.backUp).toString()).xPrivKey;
+		});
+		return xPrivKeys;
+	}
+
+	root.getNetwork = function(copayersData){
+		return JSON.parse(sjcl.decrypt(copayersData[0].password, copayersData[0].backUp)).network
+	}
+
+	root.getActiveAddresses = function(xPrivKeys, path, n, network, callback){
+		var GAP = 20;
 		var inactiveCount = 0;
-		var count = 0;
 		var retObject_ = [];
 
 		function derive(index){
-			root.getAddress(xPrivKeys, index, path, n, function(retObject) {		
+			root.getAddress(xPrivKeys, index, path, n, network, function(retObject) {
 				if (!jQuery.isEmptyObject(retObject)) {
 					retObject_.push(retObject);
 					inactiveCount = 0;
@@ -105,8 +97,9 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 				else 
 					inactiveCount++;
 
-				if (inactiveCount > GAP)
+				if (inactiveCount > GAP){
 					return callback(retObject_);
+				}
 				else 
 					derive(index +1);
 			});
@@ -114,37 +107,117 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		derive(0);
 	}
 
-	root.createRawTx = function(address, utxos, totalBalance, privKeys, n){
-		var pub = [];
-		var pri = [];
-		var tx = new Transaction();
-		var amount = parseInt((totalBalance * 100000000 - 10000).toFixed(0));
-		for(var j=0; j<utxos.length ;j++){
-			for (var i = 0; i<privKeys[j].length; i++) {
-				var priv = new bitcore.PrivateKey(privKeys[j][i]);
-				pri.push(priv);
-				pub.push(priv.publicKey);
-			}
-			tx.from(utxos[j], pub, n);
-			pub=[];
-		}
-		tx.to(address, amount);
-		tx.sign(lodash.uniq(pri));
-
-		var rawTx = tx.serialize();
-		return rawTx;
+	root.getAddress = function(xPrivKeys, index, path, n, network, callback){
+		var keys = lodash.map(xPrivKeys, function(xPrivKey){
+			var hdPrivateKey = bitcore.HDPrivateKey(xPrivKey);
+			var derivedHdPrivateKey = hdPrivateKey.derive(path + index);
+			var derivedPrivateKey = derivedHdPrivateKey.privateKey;
+			var derivedHdPublicKey = derivedHdPrivateKey.hdPublicKey;
+			return {dPrivKey: derivedPrivateKey,
+					dPubKey: derivedHdPublicKey.publicKey};
+		})
+		if(network=='testnet')
+		var address = new bitcore.Address.createMultisig(lodash.pluck(keys,'dPubKey'),parseInt(n),'testnet');
+		if(network=='livenet')
+		var address = new bitcore.Address.createMultisig(lodash.pluck(keys,'dPubKey'),parseInt(n),'livenet');
+		// call insight API for get address information
+		root.searchAddress(address.toString(),network).then(function(responseAddress){
+			// call insight API for get utxo information
+			root.searchUtxos(address.toString(),network).then(function(responseUtxo){
+				var retObject = {};
+				if(responseAddress.data.unconfirmedTxApperances + responseAddress.data.txApperances > 0){
+					retObject = {address: responseAddress.data.addrStr, 
+								balance: responseAddress.data.balance,
+								unconfirmedBalance : responseAddress.data.unconfirmedBalance,
+								path: path + index,
+								utxo: responseUtxo.data,
+								keys: keys};
+				}
+				return callback(retObject);
+				});
+		});
+	}
+	
+	root.searchAddress = function(address,network){
+		if(network=='testnet'){
+		return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '?noTxList=1');}
+		if(network=='livenet'){
+		return $http.get('https://insight.bitpay.com/api/addr/' + address + '?noTxList=1');}	
 	}
 
-	root.valCreateRawTx = function(addr,totalBalance){
+	root.searchUtxos = function(address,network){
+		if(network=='testnet'){
+	    return $http.get('https://test-insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');}
+	    if(network=='livenet'){
+	    return $http.get('https://insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');}
+    }
+
+    return root;
+}]);
+
+app.service('transactionServices',['$http', 'lodash',function($http, lodash){
+	var bitcore = require('bitcore');
+	var Transaction = bitcore.Transaction;
+	var Address = bitcore.Address;
+	var root = {};
+
+	root.valBalance = function(totalBalance){
+		if(parseInt((totalBalance * 100000000 - 10000).toFixed(0)) <= 0)
+			return 'The total amount is not enought to make a transaction';
+		return true;
+	}
+	root.valAddr = function(addr,network){
+		var bitcore = require('bitcore');
+		var Address = bitcore.Address;
 		if(addr == '' || addr.length < 20 || !Address.isValid(addr))
 			return 'Please enter a valid address.';
-		if(totalBalance <=0)
-			return 'The total balance in your address is 0';
+		try {
+             var addr = new Address(addr,network);
+            } catch(e) {
+                return "Please use a "+ network + ' address. Your backup is from a '+network+' address';
+            };
 		return true;
 	}
 
-	root.txBroadcast = function(rawTx){
-		return $http.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: rawTx});
+	root.createRawTx = function(address, transactionArray, totalBalance,n){
+		var pub = [];
+		var pri = [];
+		var priv = [];
+		console.log(address);
+		console.log(transactionArray);
+		console.log(totalBalance);
+		console.log(n);
+		var amount = parseInt((totalBalance * 100000000 - 10000).toFixed(0));
+		var tx = new Transaction();
+		lodash.each(transactionArray, function(value){
+		lodash.each(value.utxos, function(utxo){
+			lodash.each(value.keys,function(key){
+					priv = lodash.map(key,function(setOfKeys){
+						return setOfKeys.dPrivKey;
+					})
+					pub = lodash.map(key,function(setOfKeys){
+						return setOfKeys.dPubKey;	
+					})
+				});
+			console.log(priv,pub);
+			pri = pri.concat(priv);
+				tx.from(utxo,pub,parseInt(n));
+			});
+		});
+		tx.to(address, amount);
+		console.log(pri);
+		tx.sign(lodash.uniq(pri));
+		console.log(tx);
+		var rawTx = tx.serialize();
+		console.log(rawTx);
+		return rawTx;
+	}
+
+	root.txBroadcast = function(rawTx,network){
+		if(network == 'testnet'){
+		return $http.post('https://test-insight.bitpay.com/api/tx/send', {rawtx: rawTx});}
+		if(network == 'livenet'){
+		return $http.post('https://insight.bitpay.com/api/tx/send', {rawtx: rawTx});}
 	}
 
 	return root;
