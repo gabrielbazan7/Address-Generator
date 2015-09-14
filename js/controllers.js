@@ -35,7 +35,6 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 		var validation = generatorServices.validation(copayersData, m, n);
 		if(validation == true){
 		// getting main addresses
-			var cont = 0;
 			var xPrivKeys = generatorServices.getXPrivKeys(copayersData);
 			network = generatorServices.getNetwork(copayersData);
 			var mainPath = "m/45'/2147483647/0/";
@@ -43,74 +42,30 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 			$scope.textArea = 'Searching main addresses...\n\n';
 			generatorServices.getActiveAddresses(xPrivKeys, mainPath, n, network, function(mainAddressesObject) {
 				if(mainAddressesObject.length > 0){
-					mainArray = lodash.map(mainAddressesObject ,function(main){
-					if(main.utxo.length>0){
-						cont++;
-						$scope.textArea += 'Address: ' + main.address + '\n';
-						$scope.textArea += 'Balance: ' + main.balance + '\n';
-						$scope.textArea += 'Unconfirmed balance: ' + main.unconfirmedBalance + '\n';
-						$scope.textArea += 'Path: ' + main.path + '\n\n';
-					}
-					var utxos = [];
-					var keys = [];
-					for(var j=0; j<main.utxo.length ;j++){
-						console.log(main.utxo[j]);
-						utxos.push(main.utxo[j]);
-						totalBalance += main.utxo[j].amount;
-						keys.push(main.keys);
-					}	
-					if(utxos.length>0){
-						return {utxos: utxos,
-							keys: keys}
-					}
-					else
-						return;
-					})
+					mainArray = feedback(mainAddressesObject);
 					mainArray = lodash.remove(mainArray,function (n){
 						return !lodash.isUndefined(n);
 					});
-				$scope.textArea += 'Total main addresses with founds: ' + cont + '\n\n' +'*************************' + '\n';
+				$scope.textArea += 'Total main addresses with founds: ' + mainArray.length + '\n\n' +'*************************' + '\n';
 				}
 				else
 					$scope.textArea += 'No Main addresses with BTC available.\n';
 				$scope.textArea += '\nSearching change addresses...\n\n';
 			// getting change addresses
 			generatorServices.getActiveAddresses(xPrivKeys, changePath, n, network, function(changeAddressesObject) {
-			cont = 0;
+			// cont = 0;
 			if(changeAddressesObject.length > 0){
-				changeArray = lodash.map(changeAddressesObject ,function(change){
-				if(change.utxo.length>0){
-					cont ++;
-					$scope.textArea += 'Address: ' + change.address + '\n';
-					$scope.textArea += 'Balance: ' + change.balance + '\n';
-					$scope.textArea += 'Unconfirmed balance: ' + change.unconfirmedBalance + '\n';
-					$scope.textArea += 'Path: ' + change.path + '\n\n';
-				}
-				var utxos = [];
-				var keys = [];
-				for(var j=0; j<change.utxo.length ;j++){
-						utxos.push(change.utxo[j]);
-						keys.push(change.keys[j]);
-						totalBalance += change.utxo[j].amount;
-				}	
-				if(utxos.length>0){
-					return {utxos: utxos,
-						keys: keys}
-					}
-				else
-					return;
-				})
-			changeArray = lodash.remove(changeArray,function (n){
+				changeArray = feedback(changeAddressesObject);
+				changeArray = lodash.remove(changeArray,function (n){
 				return !lodash.isUndefined(n);
 			});
-			$scope.textArea += 'Total change addresses with founds: ' + cont + '\n' +'*************************' + '\n';
+			$scope.textArea += 'Total change addresses with founds: ' + changeArray.length + '\n' +'*************************' + '\n';
 			}
 		else
 			$scope.textArea += 'No Change addresses with founds available.\n\n';
 		$("#button2").show();
 		$("#messageSuccess2").show();
 		$scope.messageSuccess2 = "Search completed";
-		console.log(parseInt((totalBalance * 100000000 - 10000).toFixed(0)));
 		$scope.totalBalance = "Total amount available to send is: " + parseInt((totalBalance * 100000000).toFixed(0)) + " Satoshis";
 		});
 		});
@@ -120,6 +75,31 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 		$("#messageError2").show();
 		$scope.messageError2 = validation;
 	}
+}
+
+feedback = function(AddressesObject){
+	mcArray = lodash.map(AddressesObject ,function(obj){
+					if(obj.utxo.length>0){
+						$scope.textArea += 'Address: ' + obj.address + '\n';
+						$scope.textArea += 'Balance: ' + obj.balance + '\n';
+						$scope.textArea += 'Unconfirmed balance: ' + obj.unconfirmedBalance + '\n';
+						$scope.textArea += 'Path: ' + obj.path + '\n\n';
+					}
+					var utxos = [];
+					var keys = [];
+					for(var j=0; j<obj.utxo.length ;j++){
+						utxos.push(obj.utxo[j]);
+						totalBalance += obj.utxo[j].amount;
+						keys.push(obj.keys);
+					}	
+					if(utxos.length>0){
+						return {utxos: utxos,
+							keys: keys}
+					}
+					else
+						return;
+					})
+	return mcArray;
 }
 
 $scope.send = function(){
@@ -140,11 +120,7 @@ $scope.send = function(){
 	if(validation2 == true){
 		$scope.textArea += 'Creating transaction to retrieve total amount...\n\n';
 		var rawTx = transactionServices.createRawTx(addr, transactionArray, totalBalance, n);
-		console.log(rawTx);
-		console.log(network);
 		transactionServices.txBroadcast(rawTx,network).then(function(response,err){
-			console.log(err);
-			console.log(response);
 			$scope.messageSuccess = "Transaction completed";
 			$("#messageSuccess").show();
 		});

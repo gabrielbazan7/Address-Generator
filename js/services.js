@@ -9,7 +9,6 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 
 	 	if(copayersData.length>0 && copayersData.length == m){
 		 	lodash.each(copayersData, function(cop) {
-		 		console.log(cop.backUp);
 		 	if (cop.backUp == "" || cop.password == ""){
 	            validation = "Please enter values for all entry boxes.";
 	            return validation;
@@ -188,10 +187,6 @@ app.service('transactionServices',['$http', 'lodash',function($http, lodash){
 		var pub = [];
 		var pri = [];
 		var priv = [];
-		console.log(address);
-		console.log(transactionArray);
-		console.log(totalBalance);
-		console.log(n);
 		var amount = parseInt((totalBalance * 100000000 - 10000).toFixed(0));
 		var tx = new Transaction();
 		lodash.each(transactionArray, function(value){
@@ -204,17 +199,13 @@ app.service('transactionServices',['$http', 'lodash',function($http, lodash){
 						return setOfKeys.dPubKey;	
 					})
 				});
-			console.log(priv,pub);
 			pri = pri.concat(priv);
 				tx.from(utxo,pub,parseInt(n));
 			});
 		});
 		tx.to(address, amount);
-		console.log(pri);
 		tx.sign(lodash.uniq(pri));
-		console.log(tx);
 		var rawTx = tx.serialize();
-		console.log(rawTx);
 		return rawTx;
 	}
 
