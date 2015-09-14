@@ -25,6 +25,9 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 	$scope.generate = function(){
 		$("#messageError2").hide();
 		$("#messageSuccess2").hide();
+		$("#messageError").hide();
+		$("#messageSuccess").hide();
+		$("#button2").hide();
 		$scope.messageError2 = "";
 		$scope.messageSuccess2 = "";
 		var backUps = [];
@@ -50,88 +53,87 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 				}
 				else
 					$scope.textArea += 'No Main addresses with BTC available.\n';
-				$scope.textArea += '\nSearching change addresses...\n\n';
-			// getting change addresses
-			generatorServices.getActiveAddresses(xPrivKeys, changePath, n, network, function(changeAddressesObject) {
-			// cont = 0;
-			if(changeAddressesObject.length > 0){
-				changeArray = feedback(changeAddressesObject);
-				changeArray = lodash.remove(changeArray,function (n){
-				return !lodash.isUndefined(n);
+				$scope.textArea += 'Searching change addresses...\n\n';
+				// getting change addresses
+				generatorServices.getActiveAddresses(xPrivKeys, changePath, n, network, function(changeAddressesObject) {
+				if(changeAddressesObject.length > 0){
+					changeArray = feedback(changeAddressesObject);
+					changeArray = lodash.remove(changeArray,function (n){
+					return !lodash.isUndefined(n);
+					});
+					$scope.textArea += 'Total change addresses with founds: ' + changeArray.length + '\n';
+				}
+				else
+					$scope.textArea += 'No Change addresses with founds available.\n\n';
+				$("#button2").show();
+				$("#messageSuccess2").show();
+				$scope.messageSuccess2 = "Search completed";
+				$scope.totalBalance = "Total amount available to send is: " + parseInt((totalBalance * 100000000).toFixed(0)) + " Satoshis";
+				});
 			});
-			$scope.textArea += 'Total change addresses with founds: ' + changeArray.length + '\n' +'*************************' + '\n';
+		}
+		else{
+			$("#button2").hide();
+			$("#messageError2").show();
+			$scope.messageError2 = validation;
+		}
+	}
+
+	feedback = function(AddressesObject){
+		mcArray = lodash.map(AddressesObject ,function(obj){
+			if(obj.utxo.length>0){
+				$scope.textArea += 'Address: ' + obj.address + '\n';
+				$scope.textArea += 'Balance: ' + obj.balance + '\n';
+				$scope.textArea += 'Unconfirmed balance: ' + obj.unconfirmedBalance + '\n';
+				$scope.textArea += 'Path: ' + obj.path + '\n\n';
 			}
-		else
-			$scope.textArea += 'No Change addresses with founds available.\n\n';
-		$("#button2").show();
-		$("#messageSuccess2").show();
-		$scope.messageSuccess2 = "Search completed";
-		$scope.totalBalance = "Total amount available to send is: " + parseInt((totalBalance * 100000000).toFixed(0)) + " Satoshis";
-		});
-		});
-	}
-	else{
-		$("#button2").hide();
-		$("#messageError2").show();
-		$scope.messageError2 = validation;
-	}
-}
-
-feedback = function(AddressesObject){
-	mcArray = lodash.map(AddressesObject ,function(obj){
-					if(obj.utxo.length>0){
-						$scope.textArea += 'Address: ' + obj.address + '\n';
-						$scope.textArea += 'Balance: ' + obj.balance + '\n';
-						$scope.textArea += 'Unconfirmed balance: ' + obj.unconfirmedBalance + '\n';
-						$scope.textArea += 'Path: ' + obj.path + '\n\n';
-					}
-					var utxos = [];
-					var keys = [];
-					for(var j=0; j<obj.utxo.length ;j++){
-						utxos.push(obj.utxo[j]);
-						totalBalance += obj.utxo[j].amount;
-						keys.push(obj.keys);
-					}	
-					if(utxos.length>0){
-						return {utxos: utxos,
-							keys: keys}
-					}
-					else
-						return;
-					})
+			var utxos = [];
+			var keys = [];
+			for(var j=0; j<obj.utxo.length ;j++){
+				utxos.push(obj.utxo[j]);
+				totalBalance += obj.utxo[j].amount;
+				keys.push(obj.keys);
+			}	
+			if(utxos.length>0){
+				return {utxos: utxos,
+						keys: keys}
+			}
+			else
+				return;
+		})
 	return mcArray;
-}
-
-$scope.send = function(){
-	var validation1;
-	var validation2;
-	$scope.messageSuccess="";
-	$scope.messageError = "";
-	$("#messageError").hide();
-	$("#messageSuccess").hide();
-	if(typeof(changeArray)!="undefined"){
-		transactionArray = transactionArray.concat(changeArray);}
-	if(typeof(mainArray)!="undefined"){
-		transactionArray = transactionArray.concat(mainArray);}
-	var addr = $scope.addr;
-	validation1 = transactionServices.valBalance(totalBalance);
-	if(validation1==true){
-	validation2 = transactionServices.valAddr(addr,network);
-	if(validation2 == true){
-		$scope.textArea += 'Creating transaction to retrieve total amount...\n\n';
-		var rawTx = transactionServices.createRawTx(addr, transactionArray, totalBalance, n);
-		transactionServices.txBroadcast(rawTx,network).then(function(response,err){
-			$scope.messageSuccess = "Transaction completed";
-			$("#messageSuccess").show();
-		});
-	}else{
-		$("#messageError").show();
-		$scope.messageError = validation2 + '\n';}	
-	}	
-	else{
-		$("#messageError").show();
-		$scope.messageError = validation1 + '\n';}
 	}
+
+	$scope.send = function(){
+		var validation1;
+		var validation2;
+		$scope.messageSuccess="";
+		$scope.messageError = "";
+		$("#messageError").hide();
+		$("#messageSuccess").hide();
+		if(typeof(changeArray)!="undefined"){
+			transactionArray = transactionArray.concat(changeArray);}
+		if(typeof(mainArray)!="undefined"){
+			transactionArray = transactionArray.concat(mainArray);}
+		var addr = $scope.addr;
+		validation1 = transactionServices.valBalance(totalBalance);
+		if(validation1==true){
+		validation2 = transactionServices.valAddr(addr,network);
+		if(validation2 == true){
+			$scope.textArea += 'Creating transaction to retrieve total amount...\n\n';
+			var rawTx = transactionServices.createRawTx(addr, transactionArray, totalBalance, n);
+			transactionServices.txBroadcast(rawTx,network).then(function(response,err){
+				$scope.messageSuccess = "Transaction completed";
+				$("#messageSuccess").show();
+			});
+		}else{
+			$("#messageError").show();
+			$scope.messageError = validation2 + '\n';}	
+		}	
+		else{
+			$("#messageError").show();
+			$scope.messageError = validation1 + '\n';}
+		}
 });
 
 

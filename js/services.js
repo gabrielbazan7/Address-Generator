@@ -4,38 +4,37 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	var Address = bitcore.Address;
 	var root = {};
 
-	 root.validation = function(copayersData, m, n){
+	root.validation = function(copayersData, m, n){
 	 	var validation = "";
-
 	 	if(copayersData.length>0 && copayersData.length == m){
 		 	lodash.each(copayersData, function(cop) {
-		 	if (cop.backUp == "" || cop.password == ""){
-	            validation = "Please enter values for all entry boxes.";
-	            return validation;
-	        }
-            try {
-                JSON.parse(cop.backUp.toString());
-	            } catch(e) {
-	                validation = "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
-	                return validation;
-	            };
-	            try {
-	                sjcl.decrypt(cop.password, cop.backUp);
-	            } catch(e) {
-	                validation = "Seems like your password is incorrect. Try again.";
-	                return validation;
-	            };
+				if (cop.backUp == "" || cop.password == ""){
+			        validation = "Please enter values for all entry boxes.";
+			        return validation;
+			    }
+		        try {
+		            JSON.parse(cop.backUp.toString());
+		            } catch(e) {
+		                validation = "Your JSON is not valid, please copy only the text within (and including) the { } brackets around it.";
+		                return validation;
+		            };
+		        try {
+		            sjcl.decrypt(cop.password, cop.backUp);
+		        } catch(e) {
+		            validation = "Seems like your password is incorrect. Try again.";
+		            return validation;
+		        };
 
-	            if ((JSON.parse(sjcl.decrypt(cop.password, cop.backUp)).m != m) 
-	            	|| (JSON.parse(sjcl.decrypt(cop.password, cop.backUp)).n != n)){
-	                validation= "The wallet type (m/n) is not matched with 'm' and 'n' values.";
-	                return validation;
-	            }
-	            if(JSON.parse(sjcl.decrypt(cop.password, cop.backUp).toString()).xPrivKey = ""){
-	            	validation= "You are using a backup that cant be use to sign";
-	            	return validation;
-	            }
-		 	});
+		        if ((JSON.parse(sjcl.decrypt(cop.password, cop.backUp)).m != m) 
+		        	|| (JSON.parse(sjcl.decrypt(cop.password, cop.backUp)).n != n)){
+		            validation= "The wallet type (m/n) is not matched with 'm' and 'n' values.";
+		            return validation;
+		        }
+		        if(JSON.parse(sjcl.decrypt(cop.password, cop.backUp).toString()).xPrivKey = ""){
+		        	validation= "You are using a backup that cant be use to sign";
+		        	return validation;
+		        }
+			});
 		}
 		else{
 			validation ="Please enter values for all entry boxes.";
@@ -155,7 +154,7 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	    if(network=='livenet'){
 	    return $http.get('https://insight.bitpay.com/api/addr/' + address + '/utxo?noCache=1');}
     }
-
+    
     return root;
 }]);
 
