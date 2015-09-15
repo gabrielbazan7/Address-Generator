@@ -6,7 +6,11 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 
 	root.validation = function(copayersData, m, n){
 	 	var validation = "";
-	 	if(copayersData.length>0 && copayersData.length == m){
+	 	var walletId =[];
+	 	var copayerId =[];
+	 	var network =[];
+	 	if(copayersData.length == m){
+	 		var decryptData;
 		 	lodash.each(copayersData, function(cop) {
 				if (cop.backUp == "" || cop.password == ""){
 			        validation = "Please enter values for all entry boxes.";
@@ -19,46 +23,45 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		                return validation;
 		            };
 		        try {
-		            sjcl.decrypt(cop.password, cop.backUp);
+		           	var decryptData = sjcl.decrypt(cop.password, cop.backUp);
 		        } catch(e) {
 		            validation = "Seems like your password is incorrect. Try again.";
 		            return validation;
 		        };
-
-		        if ((JSON.parse(sjcl.decrypt(cop.password, cop.backUp)).m != m) 
-		        	|| (JSON.parse(sjcl.decrypt(cop.password, cop.backUp)).n != n)){
+		        if ((JSON.parse(decryptData).m != m) 
+		        	|| (JSON.parse(decryptData).n != n)){
 		            validation= "The wallet type (m/n) is not matched with 'm' and 'n' values.";
 		            return validation;
 		        }
-		        if(JSON.parse(sjcl.decrypt(cop.password, cop.backUp).toString()).xPrivKey = ""){
+		        if(!(JSON.parse(decryptData)).xPrivKey){
 		        	validation= "You are using a backup that cant be use to sign";
 		        	return validation;
 		        }
+		        walletId.push(JSON.parse(decryptData).walletId);
+		        copayerId.push(JSON.parse(decryptData).copayerId);
+		        network.push(JSON.parse(decryptData).network);
 			});
 		}
 		else{
 			validation ="Please enter values for all entry boxes.";
 			return validation;
 		}
-		if(validation==""){
-			if(typeof(copayersData)!="undefined"){
-				for (var i = copayersData.length - 1; i >= 0; i--) {
-	 				for (var j = copayersData.length - 1; j >= 0; j--) {
-	 					if(JSON.parse(sjcl.decrypt(copayersData[i].password, copayersData[i].backUp)).network 
-	 					!= JSON.parse(sjcl.decrypt(copayersData[j].password, copayersData[j].backUp)).network){
-	 						validation = "Please use only testnets backups or only livenets backups";
-	 						return validation;
-	 					}
-	 				}
-	 			}
-	 		}
-		}
-	 	if(validation != ""){
+		if(validation != ""){
 	 	return validation;
 	 	}
-	 	else{
-        return true;
-    	}
+		if(lodash.uniq(copayerId).length!=m){
+			validation = "You are using the same backup in some inputs";
+			return validation;
+		}
+		if(lodash.uniq(walletId).length > 1){
+			validation = "You are using a backup from a different wallet.";
+			return validation;
+		}
+		if(lodash.uniq(network).length > 1){
+				validation = "Check the input type networks.";
+				return validation;
+		}
+	 	return true;
     }
 
     root.getCopayersData = function (backUps,passwords){

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html ng-app="addressGeneratorApp">
+<html ng-app="addressGeneratorApp" lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript" src="../bower_components/angular/angular.js"></script>
     <script type="text/javascript" src="../bower_components/sjcl/sjcl.js"></script>
     <script type="text/javascript" src="../bower_components/bitcore/bitcore.min.js"></script>
@@ -9,17 +10,24 @@
     <script type="text/javascript" src="../bower_components/jquery/dist/jquery.js"></script>
     <script type="text/javascript" src="../bower_components/ng-lodash/build/ng-lodash.min.js"></script>
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link href="../bower_components/normalize-css/normalize.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="main.css"></link>
     <script type="text/javascript" src="../js/services.js"></script>
     <script type="text/javascript" src="../js/controllers.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <title>Address Generator</title>
 </head>
-<body ng-controller="addressGeneratorController">
-    <div class="container">
-        <h2>Use your backups and passwords to recover your BTC</h2>
+<div id="wrapper">
+    <header class="page-header">    
+        <div class="container">
+            <h1 style="color:white;">Copay recovery tool <br><small>Use your backups and passwords to recover your BTC</small></h1>
+        </div>
+    </header>
+    <body ng-controller="addressGeneratorController" style="background-color:#F4F6F9">
+        <div class="container">        
         <form>
-            <label>Number of copayers:</label>
+            <label>Select total number of copayers:</label>
             <select class="form-group" id="selectM">
                 <option id="1">1</option>
                 <option id="2">2</option>
@@ -28,7 +36,7 @@
                 <option id="5">5</option>
                 <option id="6">6</option>
             </select><br>
-            <label>Number of signs:</label>
+            <label>Select require number of signatures:</label>
             <select class="form-group" id="selectN">
                 <option id="1">1</option>
                 <option id="2">2</option>
@@ -40,13 +48,18 @@
             <div class="row">
                 <div class="col-md-5">
                     <div id="button2" style="display: none;">
+                        <form class="form-inline">
                         <div class="form-group">
                             <label for="addr">Insert destination address (the total amount will be send there):</label>
-                            <label for="addr">{{totalBalance}}</label>
-                            <input type="text" class="form-control" ng-model="addr">
+                            <div class="input-group">
+                                <div class="input-group-addon">Destination Address :</div>
+                                <input type="text" class="form-control" id="addr">
+                            </div>
+                            <span id="helpBlock" class="help-block">{{totalBalance}}</span>
                         </div>
+                    </form>
                         <div class="form-group">
-                            <button class="btn btn-success" ng-click="send()">Retrieve</button>
+                            <button class="btn btn-primary" ng-click="send()">Transfer Amount</button>
                         </div>
                     </div>
                     <div id="messageSuccess" class="alert alert-success" style="display: none;">
@@ -61,41 +74,41 @@
                 <div class="col-md-3">
                     <div class="form-group" id="form1">
                         <label for="backUp1">Insert your Backup JSON 1:</label>
-                        <input type="text" class="form-control" ng-model="backUp1">
+                        <input type="text" class="form-control" ng-model="backUp1" placeholder="Backup"><br>
                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password1">
+                        <input type="password" class="form-control" ng-model="password1" placeholder="Password">
                     </div>
                     <div class="form-group" id="form2">
                         <label for="backUp2">Insert your Backup JSON 2:</label>
-                        <input type="text" class="form-control" ng-model="backUp2">
+                        <input type="text" class="form-control" ng-model="backUp2" placeholder="Backup"><br>
                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password2">
+                        <input type="password" class="form-control" ng-model="password2" placeholder="Password">
                     </div>
                     <div class="form-group" id="form3">
                         <label for="backUp3">Insert your Backup JSON 3:</label>
-                        <input type="text" class="form-control" ng-model="backUp3">
+                        <input type="text" class="form-control" ng-model="backUp3" placeholder="Backup"><br>
                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password3">
+                        <input type="password" class="form-control" ng-model="password3" placeholder="Password">
                     </div>
                     <div class="form-group" id="form4">
                         <label for="backUp4">Insert your Backup JSON 4:</label>
-                        <input type="text" class="form-control" ng-model="backUp4">
+                        <input type="text" class="form-control" ng-model="backUp4" placeholder="Backup"><br>
                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password4">
+                        <input type="password" class="form-control" ng-model="password4" placeholder="Password">
                     </div>
                     <div class="form-group" id="form5">
                         <label for="backUp5">Insert your Backup JSON 5:</label>
-                        <input type="text" class="form-control" ng-model="backUp5">
+                        <input type="text" class="form-control" ng-model="backUp5" placeholder="Backup"><br>
                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password5">
+                        <input type="password" class="form-control" ng-model="password5" placeholder="Password">
                     </div>
                     <div class="form-group" id="form6">
                         <label for="backUp6">Insert your Backup JSON 6:</label>
-                        <input type="text" class="form-control" ng-model="backUp6">
+                        <input type="text" class="form-control" ng-model="backUp6" placeholder="Backup"><br>
                         <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password6">
+                        <input type="password" class="form-control" ng-model="password6" placeholder="Password">
                     </div>
-                    <button class="btn btn-success" ng-click="generate()">Generate</button><br><br>
+                    <button class="btn btn-primary" ng-click="generate()">Generate</button><br><br>
                     <div id="messageSuccess2" class="alert alert-success" style="display: none;">
                         {{messageSuccess2}}
                     </div>
@@ -110,5 +123,12 @@
             </div>
         <form>
      </div>
-</body>
+    </body>
+    <footer class="page-footer">
+            <ul>
+                <li style ="font-family: inherit;"><a href="">Help &amp; Support</a></li>
+                <li><a href="https://github.com/gabrielbazan7/Address-Generator">View the Code</a></li>
+            </ul>
+    </footer>
+</div>
 </html>
