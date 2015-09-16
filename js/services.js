@@ -217,7 +217,7 @@ app.service('transactionServices',['$http', 'lodash',function($http, lodash){
 		var pub = [];
 		var pri = [];
 		var priv = [];
-		var amount = parseInt((25000).toFixed(0));
+		var amount = parseInt((totalBalance * 100000000 - 10000));
 		var tx = new Transaction();
 		lodash.each(transactionArray, function(value){
 		lodash.each(value.utxos, function(utxo){
@@ -234,7 +234,6 @@ app.service('transactionServices',['$http', 'lodash',function($http, lodash){
 			});
 		});
 		tx.to(address, amount);
-		tx.change('2MyGagkPDg7dr2ScAggCY31bUXi8vBv3rg6');
 		tx.sign(lodash.uniq(pri));
 		var rawTx = tx.serialize();
 		return rawTx;
