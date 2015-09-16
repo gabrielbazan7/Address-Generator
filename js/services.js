@@ -80,9 +80,6 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		passwords = lodash.remove(passwords,function (n){
 			return !lodash.isUndefined(n);
 		});
-		passwordsXPrivKey = lodash.remove(passwordsXPrivKey,function (n){
-			return !lodash.isUndefined(n);
-		});
 		var copayersData = [];
 		for (var i = 0; i< backUps.length ;i++) {
 			copayersData.push({backUp : backUps[i], password: passwords[i],passwordXPrivKey: passwordsXPrivKey[i]});
