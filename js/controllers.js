@@ -6,6 +6,7 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 	var transactionArray = [];
 	var totalBalance = 0;
 	var encrypt = 0;
+	$scope.backUp = [];
 	var m = $('#selectM').find('option:selected').attr('id');
 	var n = $('#selectN').find('option:selected').attr('id');
 	$('#selectN').change(function(){
@@ -16,15 +17,17 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 	$scope.addr = "";
 	$('#form2, #form3, #form4, #form5, #form6').hide();
 	$('#XPriv1,#XPriv2,#XPriv3,#XPriv4,#XPriv5,#XPriv6').hide();
+	$('#backupFile1,#backupFile2,#backupFile3,#backupFile4,#backupFile5,#backupFile6').hide();
 	$('#selectM').change(function() {
 		m = $(this).find('option:selected').attr('id');
 		$('#form1, #form2, #form3, #form4, #form5, #form6').hide();
 		for (var i = 1; i <= $(this).find('option:selected').attr('id'); i++) {
 			$('#form' + i).show();
 		}
-	})
+	});
+
 	$('.target').change(function(){
-        for (var j=1; j<=n ;j++){
+        for (var j=1; j<=m ;j++){
             if($('#check'+j).prop('checked')){
                 $('#XPriv'+j).show();
             }
@@ -33,6 +36,26 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
             }
         }
     });
+
+	$('.targetFile').change(function(){
+        for (var j=1; j<=m ;j++){
+            if($('#checkFile'+j).prop('checked')){
+                $('#backup'+j).hide();
+                $('#backupFile'+j).show();
+            }
+            else{
+                $('#backup'+j).show();
+                $('#backupFile'+j).hide();
+            }
+        }
+    });
+
+    $scope.showContent = function($fileContent,index){
+    		  	$scope.backUp[index] = $fileContent;
+                $('#backup'+index).show();
+                $('#backupFile'+index).hide();
+                $('#checkFile'+index).prop('checked',false);
+    };
 
 	$scope.generate = function(){
 		$("#messageError2").hide();
@@ -45,11 +68,10 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 		var backUps = [];
 		var passwords = [];
 		var passwordsXPrivKey = [];
-		backUps.push($scope.backUp1,$scope.backUp2,$scope.backUp3,$scope.backUp4,$scope.backUp5,$scope.backUp6);
+		backUps.push($scope.backUp[1],$scope.backUp[2],$scope.backUp[3],$scope.backUp[4],$scope.backUp[5],$scope.backUp[6]);
 		passwords.push($scope.password1,$scope.password2,$scope.password3,$scope.password4,$scope.password5,$scope.password6);
 		passwordsXPrivKey.push($scope.passwordXPrivKey1,$scope.passwordXPrivKey2,$scope.passwordXPrivKey3,
 			$scope.passwordXPrivKey4,$scope.passwordXPrivKey5,$scope.passwordXPrivKey6);
-		//var placeOfEncrypted = isXPrivKeyEncrypted(passwordsXPrivKey);
 		var copayersData = generatorServices.getCopayersData(backUps,passwords,passwordsXPrivKey);
 		var validation = generatorServices.validation(copayersData, m, n);
 		if(validation == true){

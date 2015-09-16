@@ -71,59 +71,71 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="form-group" id="form1">
                         <label for="backUp1">Insert your Backup JSON 1</label>
-                        <input type="text" class="form-control" ng-model="backUp1" placeholder="Backup"><br>
+                        <input class="targetFile" type="checkbox" style="margin-left: 4em" id="checkFile1"> Read from a file
+                        <input id="backupFile1" type="file" on-read-file="showContent($fileContent,1)">
+                        <input type="text" class="form-control" ng-model="backUp[1]" placeholder="Backup" id="backup1"><br>
                         <label for="pwd">Password</label>
                         <input type="password" class="form-control" ng-model="password1" placeholder="Password"><br>
                         <label for="pwd">Private Key password</label>
-                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input class="target" type="checkbox" style="margin-left: 1em" id="check1">
                         <input id="XPriv1" type="password" class="form-control" ng-model="passwordXPrivKey1" placeholder="Password">
                     </div>
                     <div class="form-group" id="form2">
                         <label for="backUp2">Insert your Backup JSON 2</label>
-                        <input type="text" class="form-control" ng-model="backUp2" placeholder="Backup"><br>
+                        <input class="targetFile" type="checkbox" style="margin-left: 4em" id="checkFile2"> Read from a file
+                        <input id="backupFile2" type="file" on-read-file="showContent($fileContent,2)">
+                        <input type="text" class="form-control" ng-model="backUp[2]" placeholder="Backup" id="backup2"><br>
                         <label for="pwd">Password</label>
                         <input type="password" class="form-control" ng-model="password2" placeholder="Password"><br>
                         <label for="pwd">Private Key password</label>
-                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input class="target" type="checkbox" style="margin-left: 4em" id="check2">
                         <input id="XPriv2" type="password" class="form-control" ng-model="passwordXPrivKey2" placeholder="Password">
                     </div>
                     <div class="form-group" id="form3">
                         <label for="backUp3">Insert your Backup JSON 3</label>
-                        <input type="text" class="form-control" ng-model="backUp3" placeholder="Backup"><br>
+                        <input class="targetFile" type="checkbox" style="margin-left: 4em" id="checkFile3"> Read from a file
+                        <input id="backupFile3" type="file" on-read-file="showContent($fileContent,3)">
+                        <input type="text" class="form-control" ng-model="backUp[3]" placeholder="Backup" id="backup3"><br>
                         <label for="pwd">Password</label>
                         <input type="password" class="form-control" ng-model="password3" placeholder="Password"><br>
                         <label for="pwd">Private Key password</label>
-                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input class="target" type="checkbox" style="margin-left: 4em" id="check3">
                         <input id="XPriv3" type="password" class="form-control" ng-model="passwordXPrivKey2" placeholder="Password">
                     </div>
                     <div class="form-group" id="form4">
                         <label for="backUp4">Insert your Backup JSON 4</label>
-                        <input type="text" class="form-control" ng-model="backUp4" placeholder="Backup"><br>
+                        <input class="targetFile" type="checkbox" style="margin-left: 4em" id="checkFile4"> Read from a file
+                        <input id="backupFile4" type="file" on-read-file="showContent($fileContent,4)">
+                        <input type="text" class="form-control" ng-model="backUp[4]" placeholder="Backup" id="backup4"><br>
                         <label for="pwd">Password</label>
                         <input type="password" class="form-control" ng-model="password4" placeholder="Password"><br>
                         <label for="pwd">Private Key password</label>
-                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input class="target" type="checkbox" style="margin-left: 4em" id="check4">
                         <input id="XPriv4" type="password" class="form-control" ng-model="passwordXPrivKey2" placeholder="Password">
                     </div>
                     <div class="form-group" id="form5">
                         <label for="backUp5">Insert your Backup JSON 5</label>
-                        <input type="text" class="form-control" ng-model="backUp5" placeholder="Backup"><br>
+                        <input class="targetFile" type="checkbox" style="margin-left: 5em" id="checkFile5"> Read from a file
+                        <input id="backupFile5" type="file" on-read-file="showContent($fileContent,5)">
+                        <input type="text" class="form-control" ng-model="backUp[5]" placeholder="Backup" id="backup5"><br>
                         <label for="pwd">Password</label>
                         <input type="password" class="form-control" ng-model="password5" placeholder="Password"><br>
                         <label for="pwd">Private Key password</label>
-                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input class="target" type="checkbox" style="margin-left: 5em" id="check5">
                         <input id="XPriv5" type="password" class="form-control" ng-model="passwordXPrivKey3" placeholder="Password">
                     </div>
                     <div class="form-group" id="form6">
                         <label for="backUp6">Insert your Backup JSON 6</label>
-                        <input type="text" class="form-control" ng-model="backUp6" placeholder="Backup"><br>
+                        <input class="targetFile" type="checkbox" style="margin-left: 5em" id="checkFile6"> Read from a file
+                        <input id="backupFile6" type="file" on-read-file="showContent($fileContent,6)">
+                        <input type="text" class="form-control" ng-model="backUp[6]" placeholder="Backup" id="backup6"><br>
                         <label for="pwd">Password</label>
                         <input type="password" class="form-control" ng-model="password6" placeholder="Password"><br>
                         <label for="pwd">Private Key password</label>
-                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input class="target" type="checkbox" style="margin-left: 5em" id="check6">
                         <input id="XPriv6" type="password" class="form-control" ng-model="passwordXPrivKey6" placeholder="Password">
                     </div>
                     <button class="btn btn-primary" ng-click="generate()">Generate</button><br><br>
@@ -134,7 +146,7 @@
                         {{messageError2}}
                     </div>
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-6">
                     <label for="textArea">Feed back:</label>
                     <textarea ng-model="textArea" rows="10" style="width: 100%">Feed Back...</textarea>
                 </div>
