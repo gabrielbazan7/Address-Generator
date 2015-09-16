@@ -53,7 +53,7 @@
                             <label for="addr">Insert destination address (the total amount will be send there):</label>
                             <div class="input-group">
                                 <div class="input-group-addon">Destination Address :</div>
-                                <input type="text" class="form-control" id="addr">
+                                <input type="text" class="form-control" ng-model="addr">
                             </div>
                             <span id="helpBlock" class="help-block">{{totalBalance}}</span>
                         </div>
@@ -73,40 +73,58 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group" id="form1">
-                        <label for="backUp1">Insert your Backup JSON 1:</label>
+                        <label for="backUp1">Insert your Backup JSON 1</label>
                         <input type="text" class="form-control" ng-model="backUp1" placeholder="Backup"><br>
-                        <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password1" placeholder="Password">
+                        <label for="pwd">Password</label>
+                        <input type="password" class="form-control" ng-model="password1" placeholder="Password"><br>
+                        <label for="pwd">Private Key password</label>
+                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input id="XPriv1" type="password" class="form-control" ng-model="passwordXPrivKey1" placeholder="Password">
                     </div>
                     <div class="form-group" id="form2">
-                        <label for="backUp2">Insert your Backup JSON 2:</label>
+                        <label for="backUp2">Insert your Backup JSON 2</label>
                         <input type="text" class="form-control" ng-model="backUp2" placeholder="Backup"><br>
-                        <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password2" placeholder="Password">
+                        <label for="pwd">Password</label>
+                        <input type="password" class="form-control" ng-model="password2" placeholder="Password"><br>
+                        <label for="pwd">Private Key password</label>
+                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input id="XPriv2" type="password" class="form-control" ng-model="passwordXPrivKey2" placeholder="Password">
                     </div>
                     <div class="form-group" id="form3">
-                        <label for="backUp3">Insert your Backup JSON 3:</label>
+                        <label for="backUp3">Insert your Backup JSON 3</label>
                         <input type="text" class="form-control" ng-model="backUp3" placeholder="Backup"><br>
-                        <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password3" placeholder="Password">
+                        <label for="pwd">Password</label>
+                        <input type="password" class="form-control" ng-model="password3" placeholder="Password"><br>
+                        <label for="pwd">Private Key password</label>
+                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input id="XPriv3" type="password" class="form-control" ng-model="passwordXPrivKey2" placeholder="Password">
                     </div>
                     <div class="form-group" id="form4">
-                        <label for="backUp4">Insert your Backup JSON 4:</label>
+                        <label for="backUp4">Insert your Backup JSON 4</label>
                         <input type="text" class="form-control" ng-model="backUp4" placeholder="Backup"><br>
-                        <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password4" placeholder="Password">
+                        <label for="pwd">Password</label>
+                        <input type="password" class="form-control" ng-model="password4" placeholder="Password"><br>
+                        <label for="pwd">Private Key password</label>
+                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input id="XPriv4" type="password" class="form-control" ng-model="passwordXPrivKey2" placeholder="Password">
                     </div>
                     <div class="form-group" id="form5">
-                        <label for="backUp5">Insert your Backup JSON 5:</label>
+                        <label for="backUp5">Insert your Backup JSON 5</label>
                         <input type="text" class="form-control" ng-model="backUp5" placeholder="Backup"><br>
-                        <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password5" placeholder="Password">
+                        <label for="pwd">Password</label>
+                        <input type="password" class="form-control" ng-model="password5" placeholder="Password"><br>
+                        <label for="pwd">Private Key password</label>
+                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input id="XPriv5" type="password" class="form-control" ng-model="passwordXPrivKey3" placeholder="Password">
                     </div>
                     <div class="form-group" id="form6">
-                        <label for="backUp6">Insert your Backup JSON 6:</label>
+                        <label for="backUp6">Insert your Backup JSON 6</label>
                         <input type="text" class="form-control" ng-model="backUp6" placeholder="Backup"><br>
-                        <label for="pwd">Password:</label>
-                        <input type="password" class="form-control" ng-model="password6" placeholder="Password">
+                        <label for="pwd">Password</label>
+                        <input type="password" class="form-control" ng-model="password6" placeholder="Password"><br>
+                        <label for="pwd">Private Key password</label>
+                        <input class="target" type="checkbox" style="margin-left: 5em" id="check1">
+                        <input id="XPriv6" type="password" class="form-control" ng-model="passwordXPrivKey6" placeholder="Password">
                     </div>
                     <button class="btn btn-primary" ng-click="generate()">Generate</button><br><br>
                     <div id="messageSuccess2" class="alert alert-success" style="display: none;">

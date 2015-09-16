@@ -5,6 +5,7 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 	var changeArray;
 	var transactionArray = [];
 	var totalBalance = 0;
+	var encrypt = 0;
 	var m = $('#selectM').find('option:selected').attr('id');
 	var n = $('#selectN').find('option:selected').attr('id');
 	$('#selectN').change(function(){
@@ -14,6 +15,7 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 	$scope.textArea = "";
 	$scope.addr = "";
 	$('#form2, #form3, #form4, #form5, #form6').hide();
+	$('#XPriv1,#XPriv2,#XPriv3,#XPriv4,#XPriv5,#XPriv6').hide();
 	$('#selectM').change(function() {
 		m = $(this).find('option:selected').attr('id');
 		$('#form1, #form2, #form3, #form4, #form5, #form6').hide();
@@ -21,6 +23,16 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 			$('#form' + i).show();
 		}
 	})
+	$('.target').change(function(){
+        for (var j=1; j<=n ;j++){
+            if($('#check'+j).prop('checked')){
+                $('#XPriv'+j).show();
+            }
+            else{
+                $('#XPriv'+j).hide();
+            }
+        }
+    });
 
 	$scope.generate = function(){
 		$("#messageError2").hide();
@@ -32,13 +44,20 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 		$scope.messageSuccess2 = "";
 		var backUps = [];
 		var passwords = [];
+		var passwordsXPrivKey = [];
 		backUps.push($scope.backUp1,$scope.backUp2,$scope.backUp3,$scope.backUp4,$scope.backUp5,$scope.backUp6);
 		passwords.push($scope.password1,$scope.password2,$scope.password3,$scope.password4,$scope.password5,$scope.password6);
-		var copayersData = generatorServices.getCopayersData(backUps,passwords);
+		passwordsXPrivKey.push($scope.passwordXPrivKey1,$scope.passwordXPrivKey2,$scope.passwordXPrivKey3,
+			$scope.passwordXPrivKey4,$scope.passwordXPrivKey5,$scope.passwordXPrivKey6);
+		//var placeOfEncrypted = isXPrivKeyEncrypted(passwordsXPrivKey);
+		var copayersData = generatorServices.getCopayersData(backUps,passwords,passwordsXPrivKey);
 		var validation = generatorServices.validation(copayersData, m, n);
 		if(validation == true){
 		// getting main addresses
+		if(!(copayersData[0].passwordXPrivKey))
 			var xPrivKeys = generatorServices.getXPrivKeys(copayersData);
+		else
+			var xPrivKeys = generatorServices.getXPrivKeysDecrypt(copayersData);
 			network = generatorServices.getNetwork(copayersData);
 			var mainPath = "m/45'/2147483647/0/";
 			var changePath = "m/45'/2147483647/1/";

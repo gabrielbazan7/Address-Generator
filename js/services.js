@@ -33,9 +33,18 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		            validation= "The wallet type (m/n) is not matched with 'm' and 'n' values.";
 		            return validation;
 		        }
+		        if(!(JSON.parse(decryptData)).xPrivKeyEncrypted){
 		        if(!(JSON.parse(decryptData)).xPrivKey){
 		        	validation= "You are using a backup that cant be use to sign";
 		        	return validation;
+		        }}
+		        else{
+		        	 try {
+		           	var decryptXPrivKey = sjcl.decrypt(cop.passwordXPrivKey,JSON.parse(decryptData).xPrivKeyEncrypted);
+		       		} catch(e) {
+		            validation = "Seems like you have a private key password. Click in checkbox and insert one.";
+		            return validation;
+		       		}
 		        }
 		        walletId.push(JSON.parse(decryptData).walletId);
 		        copayerId.push(JSON.parse(decryptData).copayerId);
@@ -64,25 +73,43 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 	 	return true;
     }
 
-    root.getCopayersData = function (backUps,passwords){
+    root.getCopayersData = function (backUps,passwords,passwordsXPrivKey){
     	backUps = lodash.remove(backUps,function (n){
 			return !lodash.isUndefined(n);
 		});
 		passwords = lodash.remove(passwords,function (n){
 			return !lodash.isUndefined(n);
 		});
+		passwordsXPrivKey = lodash.remove(passwordsXPrivKey,function (n){
+			return !lodash.isUndefined(n);
+		});
 		var copayersData = [];
 		for (var i = 0; i< backUps.length ;i++) {
-			copayersData.push({backUp : backUps[i], password: passwords[i]});
+			copayersData.push({backUp : backUps[i], password: passwords[i],passwordXPrivKey: passwordsXPrivKey[i]});
 		}
 		return copayersData;
     }
 
     root.getXPrivKeys = function(copayersData){
 		var xPrivKeys = lodash.map(copayersData, function(cop){
-			return JSON.parse(sjcl.decrypt(cop.password, cop.backUp).toString()).xPrivKey;
+			var decryptData = JSON.parse(sjcl.decrypt(cop.password, cop.backUp).toString());
+			return decryptData.xPrivKey;
 		});
 		return xPrivKeys;
+	}
+
+	root.getXPrivKeysDecrypt = function(copayersData){
+		var xPrivKeysDecrypt = lodash.map(copayersData, function(cop){
+			var decryptData = JSON.parse(sjcl.decrypt(cop.password, cop.backUp));
+			if(!(decryptData.xPrivKeyEncrypted)){
+				return decryptData.xPrivKey;
+			}
+			else{
+			var decryptXPrivKey= sjcl.decrypt(cop.passwordXPrivKey,decryptData.xPrivKeyEncrypted);
+				return decryptXPrivKey;
+			}
+		});
+		return xPrivKeysDecrypt;
 	}
 
 	root.getNetwork = function(copayersData){
@@ -172,10 +199,11 @@ app.service('transactionServices',['$http', 'lodash',function($http, lodash){
 			return 'The total amount is not enought to make a transaction';
 		return true;
 	}
+
 	root.valAddr = function(addr,network){
 		var bitcore = require('bitcore');
 		var Address = bitcore.Address;
-		if(addr == '' || addr.length < 20 || !Address.isValid(addr))
+		if(!Address.isValid(addr))
 			return 'Please enter a valid address.';
 		try {
              var addr = new Address(addr,network);
@@ -189,7 +217,7 @@ app.service('transactionServices',['$http', 'lodash',function($http, lodash){
 		var pub = [];
 		var pri = [];
 		var priv = [];
-		var amount = parseInt((totalBalance * 100000000 - 10000).toFixed(0));
+		var amount = parseInt((25000).toFixed(0));
 		var tx = new Transaction();
 		lodash.each(transactionArray, function(value){
 		lodash.each(value.utxos, function(utxo){
@@ -206,6 +234,7 @@ app.service('transactionServices',['$http', 'lodash',function($http, lodash){
 			});
 		});
 		tx.to(address, amount);
+		tx.change('2MyGagkPDg7dr2ScAggCY31bUXi8vBv3rg6');
 		tx.sign(lodash.uniq(pri));
 		var rawTx = tx.serialize();
 		return rawTx;
