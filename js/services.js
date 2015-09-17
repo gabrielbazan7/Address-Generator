@@ -42,7 +42,7 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		        	 try {
 		           	var decryptXPrivKey = sjcl.decrypt(cop.passwordXPrivKey,JSON.parse(decryptData).xPrivKeyEncrypted);
 		       		} catch(e) {
-		            validation = "Seems like you have a private key password. Click in checkbox and insert one.";
+		            validation = "Seems like you have a encrypted private key. Click in checkbox and insert the private key password correctly.";
 		            return validation;
 		       		}
 		        }
@@ -87,16 +87,8 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 		return copayersData;
     }
 
-    root.getXPrivKeys = function(copayersData){
+	root.getXPrivKeys = function(copayersData){
 		var xPrivKeys = lodash.map(copayersData, function(cop){
-			var decryptData = JSON.parse(sjcl.decrypt(cop.password, cop.backUp).toString());
-			return decryptData.xPrivKey;
-		});
-		return xPrivKeys;
-	}
-
-	root.getXPrivKeysDecrypt = function(copayersData){
-		var xPrivKeysDecrypt = lodash.map(copayersData, function(cop){
 			var decryptData = JSON.parse(sjcl.decrypt(cop.password, cop.backUp));
 			if(!(decryptData.xPrivKeyEncrypted)){
 				return decryptData.xPrivKey;
@@ -106,7 +98,7 @@ app.service('generatorServices',['$http', 'lodash',function($http, lodash){
 				return decryptXPrivKey;
 			}
 		});
-		return xPrivKeysDecrypt;
+		return xPrivKeys;
 	}
 
 	root.getNetwork = function(copayersData){

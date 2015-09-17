@@ -71,15 +71,11 @@ app.controller("addressGeneratorController",function($scope, generatorServices, 
 		backUps.push($scope.backUp[1],$scope.backUp[2],$scope.backUp[3],$scope.backUp[4],$scope.backUp[5],$scope.backUp[6]);
 		passwords.push($scope.password1,$scope.password2,$scope.password3,$scope.password4,$scope.password5,$scope.password6);
 		passwordsXPrivKey.push($scope.passwordXPrivKey1,$scope.passwordXPrivKey2,$scope.passwordXPrivKey3,
-			$scope.passwordXPrivKey4,$scope.passwordXPrivKey5,$scope.passwordXPrivKey6);
+							   $scope.passwordXPrivKey4,$scope.passwordXPrivKey5,$scope.passwordXPrivKey6);
 		var copayersData = generatorServices.getCopayersData(backUps,passwords,passwordsXPrivKey);
 		var validation = generatorServices.validation(copayersData, m, n);
 		if(validation == true){
-		// getting main addresses
-		if(!(copayersData[0].passwordXPrivKey))
 			var xPrivKeys = generatorServices.getXPrivKeys(copayersData);
-		else
-			var xPrivKeys = generatorServices.getXPrivKeysDecrypt(copayersData);
 			network = generatorServices.getNetwork(copayersData);
 			var mainPath = "m/45'/2147483647/0/";
 			var changePath = "m/45'/2147483647/1/";
